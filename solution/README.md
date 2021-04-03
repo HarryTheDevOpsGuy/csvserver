@@ -47,6 +47,99 @@ docker run -d -p 9393:9300 -e CSVSERVER_BORDER=Orange -v /tmp/csvserver/solution
 Try to access http://localhost:9393/
 
 
+### Part 2
+
+Create `docker-compose.yml`
+
+```bash
+version: "3.9"
+
+services:
+  #Part - 2
+  csvserver:
+    hostname: csvserver
+    image: infracloudio/csvserver:latest
+    ports:
+      - "9393:9300"
+    volumes:
+      - ./inputFile:/csvserver/inputdata
+    environment:
+      - CSVSERVER_BORDER=Orange
+```
+
+Start container
+
+```bash
+# To start
+docker-compose up -d
+
+# To down
+docker-compose down
+```
+
+
+### Part 3
+
+update prometheus configs in `docker-compose.yml`
+
+```bash
+version: "3.9"
+
+services:
+  #Part - 2
+  csvserver:
+    hostname: csvserver
+    image: infracloudio/csvserver:latest
+    ports:
+      - "9393:9300"
+    volumes:
+      - ./inputFile:/csvserver/inputdata
+    environment:
+      - CSVSERVER_BORDER=Orange
+
+  # Part - 3
+  prometheus:
+    image: prom/prometheus:v2.22.0
+    hostname: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml      
+```
+
+Create `prometheus/prometheus.yml`
+```bash
+global:
+  scrape_interval: 30s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: csvserver
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'prometheus:9090'
+          - 'csvserver:9300'
+```
+
+
+Lets Start Container again.
+
+```bash
+# To start
+docker-compose up -d
+
+# To down
+docker-compose down
+```
+
+ After starting the container. you will able to access prometheus page. http://localhost:9090/graph
+
+
+
+
+
 ## Thanks
 **H**arry - **T**he **D**ev**O**ps **G**uy
 
